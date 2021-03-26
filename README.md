@@ -2,9 +2,8 @@
 
 This script can be used to parse the Teams Client Debug Log in case you do need to know the Call ID for further troubleshooting. It might also be useful to see if you have everything you need when doing an repro for call related issues and providing logs to Microsoft Support. You can also use this to simply get the Meeting ID which then can be used within CQD - here you may want to have a look to https://docs.microsoft.com/en-us/microsoftteams/cqd-power-bi-query-templates.
 
-Further ideas: 
-	
 To get Teams Debug Logs -> Ctrl + Alt + Shift + 1
+
 https://docs.microsoft.com/en-us/microsoftteams/log-files
 
 ## Examples
