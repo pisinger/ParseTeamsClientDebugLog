@@ -86,7 +86,7 @@ function Calls () {
 
 $CallStart 			= $logs | select-string '((\[_createCall\]) threadId\:)|\[initCall\[callId\=|threadId=19:meeting'
 $CallConnectDisc	= $logs | select-string 'callingservice.+(\=connected|\=disconnected)'
-$ModalityType       = $logs | select-string '_stopVideo|_startVideo|CallingScreenSharingMixin|SharingStarted|\[StartScreenSharing\]success|\[screenSharing\]\[control\]|\[StopScreenSharing\]success|ScreenSharingControl|SharingControl initiating new viewer session'
+$ModalityType       = $logs | select-string '_stopVideo|_startVideo|startedVideo|main-video|CallingScreenSharingMixin|SharingStarted|\[StartScreenSharing\]success|\[screenSharing\]\[control\]|\[StopScreenSharing\]success|ScreenSharingControl|SharingControl initiating new viewer session'
 $ConvController 	= $logs | select-string 'participants.+,\"4:+'
 $CallEndReason 		= $logs | select-string 'Finish start call scenarios'
 $TeamsInterop 		= $logs | select-string 'ExtendedCallStateMixin|InteropCallAlert'
@@ -96,6 +96,7 @@ $IncomingCallerName = $logs | select-string 'toastCallerDisplayName'
 $calls = @()
 $CallIds = @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)
 IF ($IncomingCalls) {$CallIds += ([RegEx]::Matches($IncomingCalls, '(?i)\[callId\=.{36}').Value) -replace "\[callId=" | select -Unique}
+$CallIds = $CallIds.Split('',[System.StringSplitOptions]::RemoveEmptyEntries)
 
 FOREACH ($callId in $CallIds) { 	
     FOREACH ($line in ($CallStart -like "*$callId*" | select -first 1)) {
@@ -191,9 +192,9 @@ FOREACH ($callId in $CallIds) {
                         $calls += Calls $StartTime $ConnectTime $EndTime $CallId "Outbound" $CallType $Modality $ToFrom "" "" $MeetingId        
                     }
                 }
-                IF (($ModalityType | select-string $callId) -like "*_startVideo *"){
+                IF (($ModalityType | select-string $callId) -like "*main-video*"){
                     # receiver
-                    $Connected = @(($ModalityType | select-string $callId) -like "*_startVideo *create*" | select -Unique)
+                    $Connected = @(($ModalityType | select-string $callId) -like "*remote*video*is*started*" | select -Unique)
                     $Disconnect = @(($ModalityType | select-string $callId) -like "*_stopVideo *video*stopped*" | select -Unique)
 					
 					for ($i = 0; $i -lt $Connected.Length; $i++) {

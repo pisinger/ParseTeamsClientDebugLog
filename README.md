@@ -5,6 +5,8 @@ This script can be used to parse the Teams Client Debug Log in case you do need 
 To get Teams Debug Logs -> **Ctrl + Alt + Shift + 1**
 https://docs.microsoft.com/en-us/microsoftteams/log-files
 
+You can run it against multiple Teams Debug Log Files/Folders as the script will filter for Default Web Log file only to grab Call-ID and other information. So if you are dealing with multiple logs/repros just copy the logs to the same location and run the script together with the "Path" switch. By default, the script will search for available logs in "Downloads" folder.
+
 ## Examples
 
 ```
