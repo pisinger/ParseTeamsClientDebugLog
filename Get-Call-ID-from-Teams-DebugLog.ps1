@@ -99,13 +99,13 @@ IF ($IncomingCalls) {$CallIds += ([RegEx]::Matches($IncomingCalls, '(?i)\[callId
 $CallIds = $CallIds.Split('',[System.StringSplitOptions]::RemoveEmptyEntries)
 
 FOREACH ($callId in $CallIds) { 	
-    FOREACH ($line in ($CallStart -like "*$callId*" | select -first 1)) {
+	FOREACH ($line in ($CallStart | select-string $CallID | select -first 1)) {
 		# init
 		$MeetingId = ""
 		$CallControllerCode = ""
         $Modality = "Audio"
         $TerminatedReason = ""
-        $incoming = $IncomingCalls | Select-String "$CallId" | select -First 1
+        $incoming = $IncomingCalls | Select-String $CallId | select -First 1
 		#$tid = $TeamsInterop | Select-String "$CallId" | select -First 1
 		
 		#------------------------------------------------------------
