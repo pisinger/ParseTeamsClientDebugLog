@@ -159,17 +159,17 @@ FOREACH ($callId in $CallIds) {
         
         # AUDIO - check for Call Type	
         IF ($end -like "*create_meetup_from_link*") {$CallType = "Meeting"; $MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}	
-        ELSEIF ($end -like "*create_meetup*") 		{$CallType = "MeetNow"; $MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}
-        ELSEIF ($end -like "*meetup*")				{$CallType = "_Meet_"; 	$MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}
+        ELSEIF ($end -like "*create_meetup*")       {$CallType = "MeetNow"; $MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}
+        ELSEIF ($end -like "*meetup*")              {$CallType = "_Meet_"; 	$MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}
         #ELSEIF (($end -like "*interop_sfc_call*" -or $end -like "*call_accept*") -and $Incoming -like "*live:*") {$CallType = "Skype";$ToFrom = $DisplayName}	
-        ELSEIF ($end -like "*interop_sfc_call*") 	{$CallType = "Skype";$ToFrom = $DisplayName}
-        ELSEIF ($Incoming -like "*live:*") 			{$CallType = "Skype";$ToFrom = $DisplayName}
+        ELSEIF ($end -like "*interop_sfc_call*")    {$CallType = "Skype";$ToFrom = $DisplayName}
+        ELSEIF ($Incoming -like "*live:*")          {$CallType = "Skype";$ToFrom = $DisplayName}
         ELSEIF ($Incoming -like "*sfb*")            {$CallType = "Skype4B"; $ToFrom = $DisplayName}	
         ELSEIF (($end -like "*one_to_one_call*" -or $end -like "*call_accept*") -and $ToFrom -notlike "*+*") {$CallType = "Teams"; $ToFrom = $DisplayName }
-        ELSEIF ($ToFrom -like "*orgid*") 			{$CallType = "Teams"; $ToFrom = $DisplayName;}
+        ELSEIF ($ToFrom -like "*orgid*")            {$CallType = "Teams"; $ToFrom = $DisplayName;}
         ELSEIF (($end -like "*pstn*" -or $end -like "*call_accept*")) {$CallType = "PSTN";}
-        ELSEIF ($ToFrom -like "*+*") 				{$CallType = "PSTN"}
-        ELSE 										{$CallType = "undefined"}
+        ELSEIF ($ToFrom -like "*+*")                {$CallType = "PSTN"}
+        ELSE                                        {$CallType = "undefined"}
         
         # save results
         $calls += Calls $StartTime $ConnectTime $EndTime $CallId $Direction $CallType $Modality $ToFrom $TerminatedReason $CallControllerCode $MeetingId
