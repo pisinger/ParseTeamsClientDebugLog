@@ -84,13 +84,13 @@ function Calls () {
     return $object
 }
 
-$CallStart 			= $logs | select-string '((\[_createCall\]) threadId\:)|\[initCall\[callId\=|threadId=19:meeting'
-$CallConnectDisc	= $logs | select-string 'callingservice.+(\=connected|\=disconnected)'
+$CallStart          = $logs | select-string '((\[_createCall\]) threadId\:)|\[initCall\[callId\=|threadId=19:meeting'
+$CallConnectDisc    = $logs | select-string 'callingservice.+(\=connected|\=disconnected)'
 $ModalityType       = $logs | select-string '_stopVideo|_startVideo|startedVideo|main-video|CallingScreenSharingMixin|SharingStarted|\[StartScreenSharing\]success|\[screenSharing\]\[control\]|\[StopScreenSharing\]success|ScreenSharingControl|SharingControl initiating new viewer session'
-$ConvController 	= $logs | select-string 'participants.+,\"4:+'
-$CallEndReason 		= $logs | select-string 'Finish start call scenarios'
-$TeamsInterop 		= $logs | select-string 'ExtendedCallStateMixin|InteropCallAlert'
-$IncomingCalls 		= $logs | select-string 'Received incoming call'
+$ConvController     = $logs | select-string 'participants.+,\"4:+'
+$CallEndReason 	    = $logs | select-string 'Finish start call scenarios'
+$TeamsInterop 	    = $logs | select-string 'ExtendedCallStateMixin|InteropCallAlert'
+$IncomingCalls      = $logs | select-string 'Received incoming call'
 $IncomingCallerName = $logs | select-string 'toastCallerDisplayName'
 
 $calls = @()
