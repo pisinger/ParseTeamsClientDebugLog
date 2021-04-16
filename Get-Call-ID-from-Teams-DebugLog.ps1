@@ -160,7 +160,7 @@ FOREACH ($callId in $CallIds) {
         # AUDIO - check for Call Type	
         IF ($end -like "*create_meetup_from_link*") {$CallType = "Meeting"; $MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}	
         ELSEIF ($end -like "*create_meetup*")       {$CallType = "MeetNow"; $MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}
-        ELSEIF ($end -like "*meetup*")              {$CallType = "_Meet_"; 	$MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}
+        ELSEIF ($end -like "*meetup*")              {$CallType = "_Meet_";  $MeetingId = ((([RegEx]::Matches($line, '(?i)\:meeting_.+?(?=@)').Value)) -Replace (":meeting_"))}
         #ELSEIF (($end -like "*interop_sfc_call*" -or $end -like "*call_accept*") -and $Incoming -like "*live:*") {$CallType = "Skype";$ToFrom = $DisplayName}	
         ELSEIF ($end -like "*interop_sfc_call*")    {$CallType = "Skype";$ToFrom = $DisplayName}
         ELSEIF ($Incoming -like "*live:*")          {$CallType = "Skype";$ToFrom = $DisplayName}
