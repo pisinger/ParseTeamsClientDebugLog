@@ -94,7 +94,37 @@ $IncomingCalls      = $logs | select-string 'Received incoming call'
 $IncomingCallerName = $logs | select-string 'toastCallerDisplayName'
 
 $calls = @()
-$CallIds = @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)
+
+IF ($CallStart) {
+    $CallIds = @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)
+}
+ELSE {
+	# in case log has been overridden already
+    Write-warning "No Call Start information found in log - just returning Call IDs"
+
+    $CallIDs = @(([RegEx]::Matches($CallConnectDisc, '(?i)callId \=.{36}').Value) -replace "callId = " | select -Unique)
+
+    FOREACH ($callId in $CallIds) { 
+        $Disconnect = $CallConnectDisc | select-string $CallId | select-string "disconnected"
+        $EndTime = ((($Disconnect -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
+
+        $end = ($CallEndReason | select-string "$CallId" | select -First 1)
+
+		IF ($ConnectTime -eq $NULL -and $Direction -eq "inbound"){
+			$TerminatedReason = "missed"
+		}
+		ELSEIF ($end){
+			$TerminatedReason = (([RegEx]::Matches($end, 'terminatedReason\=.+?(?=])').Value) -split('=',2))[1]
+			$CallControllerCode = (([RegEx]::Matches($end, 'callControllerCode\=.+?(?=])').Value) -split('=',2))[1]	
+		}
+
+        $calls += Calls "" "" $EndTime $CallId "" "" "" "" $TerminatedReason $CallControllerCode ""
+    }
+
+    $calls
+    break;
+}
+
 IF ($IncomingCalls) {$CallIds += ([RegEx]::Matches($IncomingCalls, '(?i)\[callId\=.{36}').Value) -replace "\[callId=" | select -Unique}
 $CallIds = $CallIds.Split('',[System.StringSplitOptions]::RemoveEmptyEntries)
 
