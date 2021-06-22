@@ -17,12 +17,12 @@
 	https://docs.microsoft.com/en-us/microsoftteams/log-files
 
 	Examples
-	 .\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1 | ft
-	 .\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1 -Path C:\temp
+	.\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
+	.\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1 | ft
+	.\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1 -Path C:\temp
 	$calls = .\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1
 	$calls | fl
 	
-
 	TimeStartUTC        Established TimeEnd  CallId                               Direction CallType Modality ToFrom         TerminatedReason CallControllerCode
 	------------        ----------- -------  ------                               --------- -------- -------- ------         ---------------- ------------------
 	2021-03-26 11:36:25 11:36:35    11:36:43 50477aeb-a2fa-4f3c-b722-0a4399d9d328 Outbound  Skype    Audio                   1                0
@@ -49,7 +49,8 @@
 
 param(
 	[ValidateScript({Test-Path $_})]
-	[string]$Path = "$env:USERPROFILE\Downloads"
+	[string]$Path = "$env:USERPROFILE\Downloads",
+    [switch]$OnlyCallIDs
 )
 
 $excluded = "(sync|calling|cdl|cdlWorker|chatListData|experience_renderer|extensibility)\.txt"
@@ -95,13 +96,11 @@ $IncomingCallerName = $logs | select-string 'toastCallerDisplayName'
 
 $calls = @()
 
-IF ($CallStart) {
-    $CallIds = @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)
-}
-ELSE {
+IF (!$CallStart -or $OnlyCallIDs) {
 	# in case log has been overridden already
-    Write-warning "No Call Start information found in log - just returning Call IDs"
-
+	# .\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
+	
+    Write-warning "No Call Start information found in log - returning Call IDs with Disconnect Time only."
     $CallIDs = @(([RegEx]::Matches($CallConnectDisc, '(?i)callId \=.{36}').Value) -replace "callId = " | select -Unique)
 
     FOREACH ($callId in $CallIds) { 
@@ -121,8 +120,11 @@ ELSE {
         $calls += Calls "" "" $EndTime $CallId "" "" "" "" $TerminatedReason $CallControllerCode ""
     }
 
-    $calls
+    $calls | Sort-Object EndTime -Descending
     break;
+}
+ELSE {
+    $CallIds = @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)
 }
 
 IF ($IncomingCalls) {$CallIds += ([RegEx]::Matches($IncomingCalls, '(?i)\[callId\=.{36}').Value) -replace "\[callId=" | select -Unique}

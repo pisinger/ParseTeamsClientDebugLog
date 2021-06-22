@@ -17,6 +17,11 @@ $calls | fl
 ```
 
 ```
+In case no call start information are available anymore, simply run the following to get all Call IDs found in log.
+.\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
+```
+
+```
 TimeStartUTC        Established TimeEnd  CallId                               Direction CallType Modality ToFrom         TerminatedReason CallControllerCode
 ------------        ----------- -------  ------                               --------- -------- -------- ------         ---------------- ------------------
 2021-03-26 11:36:25 11:36:35    11:36:43 50477aeb-a2fa-4f3c-b722-0a4399d9d328 Outbound  Skype    Audio                   1                0
