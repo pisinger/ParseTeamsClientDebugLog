@@ -16,11 +16,6 @@ $calls = .\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1
 $calls | fl
 ```
 
-In case no call start information are available anymore, simply run the following to get all Call IDs found in log.
-```
-.\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
-```
-
 ```
 TimeStartUTC        Established TimeEnd  CallId                               Direction CallType Modality ToFrom         TerminatedReason CallControllerCode
 ------------        ----------- -------  ------                               --------- -------- -------- ------         ---------------- ------------------
@@ -44,6 +39,11 @@ TimeStartUTC        Established TimeEnd  CallId                               Di
 2021-03-25 07:42:21             07:42:33 96b6d394-377a-44eb-b4d7-e08bc7224427 Inbound   PSTN     Audio    +49123456789   missed
 2021-03-25 07:41:52 07:41:56    07:42:03 0367145b-8390-4757-82f1-0287e289a06c Inbound   PSTN     Audio    +49123456789   1                0
 2021-03-25 07:41:32 07:41:39    07:41:47 c6dde31f-4765-490f-9427-28d0048e6a34 Outbound  PSTN     Audio    +49123456789   1                0
+```
+
+In case no call start information are available anymore, simply run the following to get all Call IDs found in log.
+```
+.\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
 ```
 
 ## Contributing
