@@ -16,8 +16,8 @@ $calls = .\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1
 $calls | fl
 ```
 
-```
 In case no call start information are available anymore, simply run the following to get all Call IDs found in log.
+```
 .\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
 ```
 
