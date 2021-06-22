@@ -18,9 +18,9 @@
 
 	Examples
 	.\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
-	.\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1 | ft
-	.\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1 -Path C:\temp
-	$calls = .\Get-Call-ID-and-Time-from-Teams-DebugLog.ps1
+	.\Get-Call-ID-from-Teams-DebugLog.ps1 | ft
+	.\Get-Call-ID-from-Teams-DebugLog.ps1 -Path C:\temp
+	$calls = .\Get-Call-ID-from-Teams-DebugLog.ps1
 	$calls | fl
 	
 	TimeStartUTC        Established TimeEnd  CallId                               Direction CallType Modality ToFrom         TerminatedReason CallControllerCode
