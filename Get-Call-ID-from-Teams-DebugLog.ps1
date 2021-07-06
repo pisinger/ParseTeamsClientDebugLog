@@ -17,6 +17,7 @@
 	https://docs.microsoft.com/en-us/microsoftteams/log-files
 
 	Examples
+	.\Get-Call-ID-from-Teams-DebugLog.ps1 -ClientInfo
 	.\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
 	.\Get-Call-ID-from-Teams-DebugLog.ps1 | ft
 	.\Get-Call-ID-from-Teams-DebugLog.ps1 -Path C:\temp
@@ -50,14 +51,54 @@
 param(
 	[ValidateScript({Test-Path $_})]
 	[string]$Path = "$env:USERPROFILE\Downloads",
-    [switch]$OnlyCallIDs
+    [switch]$OnlyCallIDs,
+	[switch]$ClientInfo
 )
 
 $excluded = "(sync|calling|cdl|cdlWorker|chatListData|experience_renderer|extensibility)\.txt"
 $Files = Get-ChildItem $Path -Include *MSTeams*.txt* -Recurse | where Name -notmatch $excluded
 
-$logs = @()
+# get client/endpoint info only
+IF ($ClientInfo) {
+	foreach ($File in $Files) {
+			
+		[string]$log = Get-Content -Path $File.FullName
+		$log = $log | ConvertTo-Json | ConvertFrom-Json
+		$log = ([string]$log -split "} }",2)[0]
+		$log = $log + "} }"	
+		$j = ($log | ConvertFrom-Json)
+		
+		$object = [pscustomobject]@{
+			File = $($File.FullName)
+			Name = $j.user.profile.name
+			Upn =  $j.user.profile.upn
+			SessionId = $j.sessionId
+			TimeZoneUTC = $j.timezone
+			Auth = $j.context.authStack
+			Tenant = $j.user.profile.tid
+			Region = $j.context."UserInfo.Region"
+			Env = $j.context.environment
+			Ring = $j.context."UserInfo.Ring"
+			ClientType = $j.context.clientType
+			Version = $j.context.appversion
+			VersionDate = $j.context.buildtime
+			SlimcoreVersion = $j.version.slimcoreVersion			
+			Device = $j.context."DeviceInfo.SystemProductName"
+			DeviceManu = $j.context."DeviceInfo.SystemManufacturer"
+			OSVersion = $j.context.osversion
+			Arch = $j.context.osarchitecture
+			Memory = $j.context.totalMemory
+			Cpu = $j.context.cpumodel
+			CpuSpeed = $j.context.cpuspeed
+			CpuCores = $j.context.cores
+			PublicIP = $j.user.profile.ipaddr
+		}
+		$object
+	}
+	break
+}
 
+$logs = @()
 foreach ($File in $Files) {    
 	$logs += Get-Content -Path $File.FullName
 }
