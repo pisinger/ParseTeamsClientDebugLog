@@ -49,7 +49,9 @@ In case no call start information are available anymore, simply run the followin
 You can also run with ClientInfo switch to get information back such as User Name, Client Version, Device, CPU.
 ```
 .\Get-Call-ID-from-Teams-DebugLog.ps1 -ClientInfo
+```
 
+```
 File            : C:\temp\MSTeams Diagnostics Log 7_6_2021__10_11_35_PM.txt
 Name            : Richard Parker
 Upn             : richard@contoso.com
