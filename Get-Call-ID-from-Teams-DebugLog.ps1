@@ -62,10 +62,10 @@ $Files = Get-ChildItem $Path -Include *MSTeams*.txt* -Recurse | where Name -notm
 IF ($ClientInfo) {
 	foreach ($File in $Files) {
 			
-		[string]$log = Get-Content -Path $File.FullName
-		$log = $log | ConvertTo-Json | ConvertFrom-Json
-		$log = ([string]$log -split "} }",2)[0]
-		$log = $log + "} }"	
+		[string]$log = Get-Content -Path $File.FullName;
+		$log = $log | ConvertTo-Json | ConvertFrom-Json;
+		$log = ([string]$log -split "} }",2)[0];
+		$log = $log + "} }";
 		$j = ($log | ConvertFrom-Json)
 		
 		$object = [pscustomobject]@{
@@ -75,11 +75,14 @@ IF ($ClientInfo) {
 			SessionId = $j.sessionId
 			TimeZoneUTC = $j.timezone
 			Auth = $j.context.authStack
+			Issuer = $j.user.profile.iss
 			Tenant = $j.user.profile.tid
 			Region = $j.context."UserInfo.Region"
 			Env = $j.context.environment
 			Ring = $j.context."UserInfo.Ring"
+			RingName = $j.ring.friendlyName
 			ClientType = $j.context.clientType
+			PlatformId = $j.context."AppInfo.PlatformId"
 			Version = $j.context.appversion
 			VersionDate = $j.context.buildtime
 			SlimcoreVersion = $j.version.slimcoreVersion			

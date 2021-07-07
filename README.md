@@ -46,12 +46,35 @@ In case no call start information are available anymore, simply run the followin
 .\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
 ```
 
+You can also run with ClientInfo switch to get information back such as User Name, Client Version, Device, CPU.
+```
+.\Get-Call-ID-from-Teams-DebugLog.ps1 -ClientInfo
+
+File            : C:\temp\MSTeams Diagnostics Log 7_6_2021__10_11_35_PM.txt
+Name            : Richard Parker
+Upn             : richard@contoso.com
+SessionId       : 7269b132-f0f5-9f65-54c0-fc9d587f0fc9
+TimeZoneUTC     : 2
+Auth            : native-wam
+Issuer          : https://sts.windows.net/
+Region          : emea
+Env             : pckgsvc-prod-c1-euno-01
+Ring            : general
+RingName        : Public
+ClientType      : desktop
+PlatformId      : 27
+Version         : 1.4.00.16575
+SlimcoreVersion : 2021.14.41
+Device          : Surface Book 2
+DeviceManu      : Microsoft Corporation
+OSVersion       : 10.0.19042
+Arch            : x64
+Memory          : 17092849664
+Cpu             : Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz
+CpuSpeed        : 2112
+CpuCores        : 8
+```
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
