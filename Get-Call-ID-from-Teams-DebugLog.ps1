@@ -313,5 +313,5 @@ FOREACH ($callId in $CallIds) {
 		}
 	}
 }
-$calls = $calls | Sort-Object TimeStartUTC, Established -Descending; 
+$calls = $calls | Sort-Object TimeStartUTC, Established; 
 $calls
