@@ -132,7 +132,7 @@ function Calls () {
 	return $object
 }
 
-$CallStart          = $logs | select-string '((\[_createCall\]) threadId\:)|\[initCall\[callId\=|threadId=19:meet|threadId:19:meet|newCallId = '
+$CallStart          = $logs | select-string '\[_createCall|\[initCall\[callId\=|newCallId = '	# |threadId=19:meet|threadId:19:meet|newCallId = '
 $CallConnectDisc    = $logs | select-string 'callingservice.+(\=connected|\=disconnected)'
 $ModalityType       = $logs | select-string '_stopVideo|_startVideo|startedVideo|main-video|CallingScreenSharingMixin|SharingStarted|\[StartScreenSharing\]success|\[screenSharing\]\[control\]|\[StopScreenSharing\]success|ScreenSharingControl|SharingControl initiating new viewer session'
 $ConvController     = $logs | select-string 'participants.+,\"4:+'
@@ -158,6 +158,7 @@ IF (!$CallStart -or $OnlyCallIDs) {
 		$CallEndReasonPhrase = ""
 		$Scenario = ""
 		
+		$StartTime = ((($CallStart | select-string $CallId) -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]
         $Disconnect = $CallConnectDisc | select-string $CallId | select-string "disconnected"
         $EndTime = ((($Disconnect -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 
@@ -174,10 +175,10 @@ IF (!$CallStart -or $OnlyCallIDs) {
 			$CallEndReasonPhrase = (([RegEx]::Matches($endPhrase, 'phrase\"\:.+?(?=")').Value) -split(':"',2))[1]
 		}
 
-        $calls += Calls "" "" $EndTime $CallId "" "" "" "" $Scenario $TerminatedReason $CallControllerCode $CallEndReasonPhrase ""
+        $calls += Calls $StartTime "" $EndTime $CallId "" "" "" "" $Scenario $TerminatedReason $CallControllerCode $CallEndReasonPhrase ""
     }
 
-    $calls | select CallId, TimeStartUTC, Established, TimeEnd, Scenario, TerminatedReason, CallControllerCode, CallEndReasonPhrase | Sort-Object EndTime -Descending
+    $calls | select CallId, TimeStartUTC, TimeEnd, Scenario, TerminatedReason, CallControllerCode, CallEndReasonPhrase | Sort-Object EndTime -Descending
     break;
 }
 ELSE {
@@ -189,7 +190,7 @@ ELSE {
 IF ($IncomingCalls) {$CallIds += ([RegEx]::Matches($IncomingCalls, '(?i)\[callId\=.{36}').Value) -replace "\[callId=" | select -Unique}
 $CallIds = $CallIds.Split('',[System.StringSplitOptions]::RemoveEmptyEntries)
 
-FOREACH ($callId in $CallIds) { 	
+FOREACH ($callId in $CallIds) {	
 	FOREACH ($line in ($CallStart | select-string $CallID | select -first 1)) {
 		# init
 		$MeetingId = ""
@@ -208,9 +209,9 @@ FOREACH ($callId in $CallIds) {
 		$ConnectTime = ((($Connected -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 		$EndTime = ((($Disconnect -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 		#------------------------------------------------------------
-
+		
 		# check for inbound or outbound call
-		IF ($line -like "*createCall*"){
+		IF ($line -like "*createCall*" -or $line -like "*newCall*"){
 			$Direction = "Outbound"
 			$DisplayName = ""
 
