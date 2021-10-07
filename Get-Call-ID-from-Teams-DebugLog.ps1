@@ -110,7 +110,8 @@ function Calls () {
 	param ( 
 		[string]$StartTime,[string]$ConnectTime,[string]$EndTime,
 		$CallId,$Direction,$CallType,$Modality,$ToFrom,
-		$TerminatedReason,$CallControllerCode,$MeetingId
+		$Scenario,$TerminatedReason,$CallControllerCode,$CallEndReasonPhrase,
+		$MeetingId
 	)
 		
 	$object = [pscustomobject]@{
@@ -122,18 +123,21 @@ function Calls () {
 		CallType = $CallType
 		Modality = $Modality
 		ToFrom = $ToFrom
+		Scenario = $Scenario
 		TerminatedReason = $TerminatedReason
 		CallControllerCode = $CallControllerCode
+		CallEndReasonPhrase	= $CallEndReasonPhrase
 		MeetingId = $MeetingId
 	}
 	return $object
 }
 
-$CallStart          = $logs | select-string '((\[_createCall\]) threadId\:)|\[initCall\[callId\=|threadId=19:meeting'
+$CallStart          = $logs | select-string '((\[_createCall\]) threadId\:)|\[initCall\[callId\=|threadId=19:meet|threadId:19:meet|newCallId = '
 $CallConnectDisc    = $logs | select-string 'callingservice.+(\=connected|\=disconnected)'
 $ModalityType       = $logs | select-string '_stopVideo|_startVideo|startedVideo|main-video|CallingScreenSharingMixin|SharingStarted|\[StartScreenSharing\]success|\[screenSharing\]\[control\]|\[StopScreenSharing\]success|ScreenSharingControl|SharingControl initiating new viewer session'
 $ConvController     = $logs | select-string 'participants.+,\"4:+'
 $CallEndReason 	    = $logs | select-string 'Finish start call scenarios'
+$CallEndPhrase		= $logs | select-string '"phrase":'
 $TeamsInterop 	    = $logs | select-string 'ExtendedCallStateMixin|InteropCallAlert'
 $IncomingCalls      = $logs | select-string 'Received incoming call'
 $IncomingCallerName = $logs | select-string 'toastCallerDisplayName'
@@ -145,30 +149,41 @@ IF (!$CallStart -or $OnlyCallIDs) {
 	# .\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
 	
     Write-warning "No Call Start information found in log - returning Call IDs with Disconnect Time only."
-    $CallIDs = @(([RegEx]::Matches($CallConnectDisc, '(?i)callId \=.{36}').Value) -replace "callId = " | select -Unique)
-
+    $CallIDs = @(([RegEx]::Matches($CallConnectDisc, '(?i)callId \= .{36}').Value) -replace "callId = " | select -Unique)
+	$CallIDs += @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)	
+	$CallIDs = $CallIDs | select -unique
+	
     FOREACH ($callId in $CallIds) { 
+		$CallControllerCode = ""
+		$CallEndReasonPhrase = ""
+		$Scenario = ""
+		
         $Disconnect = $CallConnectDisc | select-string $CallId | select-string "disconnected"
         $EndTime = ((($Disconnect -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 
         $end = ($CallEndReason | select-string "$CallId" | select -First 1)
+		$endPhrase = ($CallEndPhrase | select-string "$CallId" | select -First 1)
 
 		IF ($ConnectTime -eq $NULL -and $Direction -eq "inbound"){
 			$TerminatedReason = "missed"
 		}
 		ELSEIF ($end){
-			$TerminatedReason = (([RegEx]::Matches($end, 'terminatedReason\=.+?(?=])').Value) -split('=',2))[1]
+			$TerminatedReason = (([RegEx]::Matches($end, 'terminatedReason\=.+?(?=])').Value) -split('=',2))[1]			
 			$CallControllerCode = (([RegEx]::Matches($end, 'callControllerCode\=.+?(?=])').Value) -split('=',2))[1]	
+			$Scenario = (([RegEx]::Matches($end, 'primaryScenario\=.+?(?=])').Value) -split('=',2))[1]
+			$CallEndReasonPhrase = (([RegEx]::Matches($endPhrase, 'phrase\"\:.+?(?=")').Value) -split(':"',2))[1]
 		}
 
-        $calls += Calls "" "" $EndTime $CallId "" "" "" "" $TerminatedReason $CallControllerCode ""
+        $calls += Calls "" "" $EndTime $CallId "" "" "" "" $Scenario $TerminatedReason $CallControllerCode $CallEndReasonPhrase ""
     }
 
-    $calls | Sort-Object EndTime -Descending
+    $calls | select CallId, TimeStartUTC, Established, TimeEnd, Scenario, TerminatedReason, CallControllerCode, CallEndReasonPhrase | Sort-Object EndTime -Descending
     break;
 }
 ELSE {
     $CallIds = @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)
+	$CallIds += @(([RegEx]::Matches($CallStart, '(?i)newCallId \= .{36}').Value) -replace "newCallId = " | select -Unique)
+	$CallIds = $CallIds | select -unique
 }
 
 IF ($IncomingCalls) {$CallIds += ([RegEx]::Matches($IncomingCalls, '(?i)\[callId\=.{36}').Value) -replace "\[callId=" | select -Unique}
@@ -181,6 +196,8 @@ FOREACH ($callId in $CallIds) {
 		$CallControllerCode = ""
 		$Modality = "Audio"
 		$TerminatedReason = ""
+		$Scenario = ""
+		$CallEndReasonPhrase = ""
 		$incoming = $IncomingCalls | Select-String $CallId | select -First 1
 		#$tid = $TeamsInterop | Select-String "$CallId" | select -First 1
 		
@@ -224,6 +241,7 @@ FOREACH ($callId in $CallIds) {
 		
 		# check for Call End Reason and Call Type: teams, pstn, meeting, interop
 		$end = ($CallEndReason | select-string "$CallId" | select -First 1)
+		$endPhrase = ($CallEndPhrase | select-string "$CallId" | select -First 1)
 
 		IF ($ConnectTime -eq $NULL -and $Direction -eq "inbound"){
 			$TerminatedReason = "missed"
@@ -231,6 +249,8 @@ FOREACH ($callId in $CallIds) {
 		ELSEIF ($end){
 			$TerminatedReason = (([RegEx]::Matches($end, 'terminatedReason\=.+?(?=])').Value) -split('=',2))[1]
 			$CallControllerCode = (([RegEx]::Matches($end, 'callControllerCode\=.+?(?=])').Value) -split('=',2))[1]	
+			$Scenario = (([RegEx]::Matches($end, 'primaryScenario\=.+?(?=])').Value) -split('=',2))[1]
+			$CallEndReasonPhrase = (([RegEx]::Matches($endPhrase, 'phrase\"\:.+?(?=")').Value) -split(':"',2))[1]
 		}
 		
 		# AUDIO - check for Call Type	
@@ -248,7 +268,7 @@ FOREACH ($callId in $CallIds) {
 		ELSE                                        {$CallType = "undefined"}
 		
 		# save results
-		$calls += Calls $StartTime $ConnectTime $EndTime $CallId $Direction $CallType $Modality $ToFrom $TerminatedReason $CallControllerCode $MeetingId
+		$calls += Calls $StartTime $ConnectTime $EndTime $CallId $Direction $CallType $Modality $ToFrom $Scenario $TerminatedReason $CallControllerCode $CallEndReasonPhrase $MeetingId
 		
 		# VIDEO or SHARING
 		IF ($ModalityType | select-string $callId) {
@@ -265,7 +285,7 @@ FOREACH ($callId in $CallIds) {
 						$ConnectTime = ((($Connected[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 						$EndTime = ((($Disconnect[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 						# save results
-						$calls += Calls $StartTime $ConnectTime $EndTime $CallId "Outbound" $CallType $Modality $ToFrom "" "" $MeetingId        
+						$calls += Calls $StartTime $ConnectTime $EndTime $CallId "Outbound" $CallType $Modality $ToFrom "" "" "" "" $MeetingId 
 					}
 				}
 				IF (($ModalityType | select-string $callId) -like "*main-video*"){
@@ -277,7 +297,7 @@ FOREACH ($callId in $CallIds) {
 						$ConnectTime = ((($Connected[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 						$EndTime = ((($Disconnect[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 						# save results
-						$calls += Calls $StartTime $ConnectTime $EndTime $CallId "Inbound" $CallType $Modality $ToFrom "" "" $MeetingId        
+						$calls += Calls $StartTime $ConnectTime $EndTime $CallId "Inbound" $CallType $Modality $ToFrom "" "" "" "" $MeetingId
 					}
 				}
 			}
@@ -294,7 +314,7 @@ FOREACH ($callId in $CallIds) {
 						$ConnectTime = ((($Connected[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 						$EndTime = ((($Disconnect[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 						# save results
-						$calls += Calls $StartTime $ConnectTime $EndTime $CallId "Outbound" $CallType $Modality $ToFrom "" "" $MeetingId        
+						$calls += Calls $StartTime $ConnectTime $EndTime $CallId "Outbound" $CallType $Modality $ToFrom "" "" "" "" $MeetingId
 					}                    
 				}
 				IF (($ModalityType | select-string $callId) -like "*SharingStarted*"){ 
@@ -306,7 +326,7 @@ FOREACH ($callId in $CallIds) {
 						$ConnectTime = ((($Connected[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 						$EndTime = ((($Disconnect[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 						# save results
-						$calls += Calls $StartTime $ConnectTime $EndTime $CallId "Inbound" $CallType $Modality $ToFrom "" "" $MeetingId        
+						$calls += Calls $StartTime $ConnectTime $EndTime $CallId "Inbound" $CallType $Modality $ToFrom "" "" "" "" $MeetingId
 					}
 				}
 			}
