@@ -146,12 +146,16 @@ $calls = @()
 
 IF (!$CallStart -or $OnlyCallIDs) {
 	# in case log has been overridden already
-	# .\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
+	# .\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs   
 	
-    Write-warning "No Call Start information found in log - returning Call IDs with Disconnect Time only."
-    $CallIDs = @(([RegEx]::Matches($CallConnectDisc, '(?i)callId \= .{36}').Value) -replace "callId = " | select -Unique)
-	$CallIDs += @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)	
-	$CallIDs = $CallIDs | select -unique
+	TRY {
+		$CallIDs = @(([RegEx]::Matches($CallConnectDisc, '(?i)callId \= .{36}').Value) -replace "callId = " | select -Unique)
+		$CallIDs += @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)	
+		$CallIDs = $CallIDs | select -unique
+	}
+	CATCH {
+		Write-warning "No Calling information found in log."
+	}
 	
     FOREACH ($callId in $CallIds) { 
 		$CallControllerCode = ""
