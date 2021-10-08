@@ -9,11 +9,32 @@ You can run it against multiple Teams Debug Log Files/Folders as the script will
 
 ## Examples
 
+The below will simply give you information about calls it founds
 ```
-.\Get-Call-ID-from-Teams-DebugLog.ps1 | ft
+.\Get-Call-ID-from-Teams-DebugLog.ps1 
 .\Get-Call-ID-from-Teams-DebugLog.ps1 -Path C:\temp
+```
+
+```
+TimeStartUTC        : 2021-10-07 10:58:08
+Established         : 10:58:12
+TimeEnd             : 11:02:26
+CallId              : d5dd25b0-1eda-4190-b3fa-5d97225c55ba
+Direction           : Inbound
+CallType            : Teams
+Modality            : Audio
+ToFrom              : John Doe
+Scenario            : call_accept
+TerminatedReason    : 1
+CallControllerCode  : 0
+CallEndReasonPhrase : LocalUserInitiated
+MeetingId           :
+```
+
+Next gives you all found calls in a table view. Helpful in case you are dealing with multiple log files.
+```
 $calls = .\Get-Call-ID-from-Teams-DebugLog.ps1
-$calls | fl
+$calls | ft
 ```
 
 ```
