@@ -51,15 +51,17 @@ $Files = Get-ChildItem $Path -Include *MSTeams*.txt* -Recurse | where Name -notm
 
 # get client/endpoint info only
 IF ($ClientInfo) {
+	$object = @()
+	
 	foreach ($File in $Files) {
-			
+		
 		[string]$log = Get-Content -Path $File.FullName;
 		$log = $log | ConvertTo-Json | ConvertFrom-Json;
 		$log = ([string]$log -split "} }",2)[0];
 		$log = $log + "} }";
 		$j = ($log | ConvertFrom-Json)
 		
-		$object = [pscustomobject]@{
+		$object += [pscustomobject]@{
 			File = $($File.FullName)
 			Name = $j.user.profile.name
 			Upn =  $j.user.profile.upn
@@ -81,14 +83,14 @@ IF ($ClientInfo) {
 			DeviceManu = $j.context."DeviceInfo.SystemManufacturer"
 			OSVersion = $j.context.osversion
 			Arch = $j.context.osarchitecture
-			Memory = $j.context.totalMemory
+			MemoryGB = [math]::round($j.context.totalMemory / 1000000000)
 			Cpu = $j.context.cpumodel
 			CpuSpeed = $j.context.cpuspeed
 			CpuCores = $j.context.cores
 			PublicIP = $j.user.profile.ipaddr
-		}
-		$object
+		}		
 	}
+	$object | sort -unique SessionId
 	break
 }
 
