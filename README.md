@@ -1,21 +1,36 @@
 # ParseTeamsClientDebugLog
 
-This script can be used to parse the Teams Client Debug Log in case you do need to know the Call ID for further troubleshooting. It might also be useful to see if you have everything you need when doing an repro for call related issues and providing logs to Microsoft Support. You can also use this to simply get the Meeting ID which then can be used within CQD - here you may want to have a look to https://docs.microsoft.com/en-us/microsoftteams/cqd-power-bi-query-templates.
+This script can be used to parse the Teams Client Debug Log in case you do need to know the Call ID for further troubleshooting. It might also be useful to see if you have everything you need when doing an repro for call related issues and providing logs to Microsoft Support.
 
-To get Teams Debug Logs -> **Ctrl + Alt + Shift + 1**
-https://docs.microsoft.com/en-us/microsoftteams/log-files
+You can also use the script to simply get the Meeting ID which then can be used within CQD - for more details see the link below:
 
-You can run it against multiple Teams Debug Log Files/Folders as the script will filter for Default Web Log file only to grab Call-ID and other information. So if you are dealing with multiple logs/repros just copy the logs to the same location and run the script together with the "Path" switch. By default, the script will search for available logs in "Downloads" folder.
+> <https://docs.microsoft.com/en-us/microsoftteams/cqd-power-bi-query-templates/>.
+
+---
+
+To get Teams Debug Logs you have those options:
+
+- `Ctrl + Alt + Shift + 1` (Windows)
+- `Right click to the Teams systray icon` within taskbar by choosing `collect support logs`.
+
+> <https://docs.microsoft.com/en-us/microsoftteams/log-files/>
+
+---
+
+You can run it against multiple Teams Debug Log Files/Folders as the script will filter for Default Web Log file only to grab Call-ID and other information. So if you are dealing with multiple logs/repros just copy the logs to the same location and run the script together with the `Path` switch. By default, the script will search for available logs in `Downloads` folder.
+
+---
 
 ## Examples
 
 The below will simply give you information about calls it founds
-```
+
+```powershell
 .\Get-Call-ID-from-Teams-DebugLog.ps1 
 .\Get-Call-ID-from-Teams-DebugLog.ps1 -Path C:\temp
 ```
 
-```
+```txt
 TimeStartUTC        : 2021-10-07 10:58:08
 Established         : 10:58:12
 TimeEnd             : 11:02:26
@@ -31,17 +46,18 @@ CallEndReasonPhrase : LocalUserInitiated
 MeetingId           :
 ```
 
-Next gives you all found calls in a table view. Helpful in case you are dealing with multiple log files.
-```
+Next example gives you all found calls in a table view. Helpful in case you are dealing with multiple log files.
+
+```powershell
 $calls = .\Get-Call-ID-from-Teams-DebugLog.ps1
 $calls | ft
 ```
 
-```
+```txt
 TimeStartUTC        Established TimeEnd  CallId                               Direction CallType Modality ToFrom         TerminatedReason CallControllerCode
 ------------        ----------- -------  ------                               --------- -------- -------- ------         ---------------- ------------------
 2021-03-26 11:36:25 11:36:35    11:36:43 50477aeb-a2fa-4f3c-b722-0a4399d9d328 Outbound  Skype    Audio                   1                0
-2021-03-26 11:36:05 11:36:09    11:36:19 6f892872-f737-4dd8-aaff-4b1f75cc2e6b Inbound   Skype    Audio    Jane Doe    	 1                0
+2021-03-26 11:36:05 11:36:09    11:36:19 6f892872-f737-4dd8-aaff-4b1f75cc2e6b Inbound   Skype    Audio    Jane Doe       1                0
 2021-03-26 11:17:17 11:17:48    11:17:57 000a9959-e91f-494a-b10c-914e968ae1ad Inbound   Teams    Video    Richard Parker
 2021-03-26 11:17:17 11:17:30    11:17:40 000a9959-e91f-494a-b10c-914e968ae1ad Inbound   Teams    Video    Richard Parker
 2021-03-26 11:17:17 11:17:19    11:18:01 000a9959-e91f-494a-b10c-914e968ae1ad Inbound   Teams    Audio    Richard Parker 1                0
@@ -63,16 +79,18 @@ TimeStartUTC        Established TimeEnd  CallId                               Di
 ```
 
 In case no call start information are available anymore, simply run the following to get all Call IDs found in log.
-```
+
+```powershell
 .\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs
 ```
 
 You can also run with ClientInfo switch to get information back such as User Name, Client Version, Device, CPU.
-```
+
+```powershell
 .\Get-Call-ID-from-Teams-DebugLog.ps1 -ClientInfo
 ```
 
-```
+```txt
 File            : C:\temp\MSTeams Diagnostics Log 7_6_2021__10_11_35_PM.txt
 Name            : Richard Parker
 Upn             : richard@contoso.com
