@@ -10,7 +10,8 @@ You can also use the script to simply get the Meeting ID which then can be used 
 
 To get Teams Debug Logs you have those options:
 
-- `Ctrl + Alt + Shift + 1` (Windows)
+- `Ctrl` + `Alt` + `Shift` + `1` (Windows)
+- `Option` + `Command` + `Shift` + `1` (Mac)
 - `Right click to the Teams systray icon` within taskbar by choosing `collect support logs`.
 
 > <https://docs.microsoft.com/en-us/microsoftteams/log-files/>
