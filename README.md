@@ -1,6 +1,6 @@
 # ParseTeamsClientDebugLog
 
-This script can be used to parse the Teams Client Debug Log in case you do need to know the Call ID for further troubleshooting. It might also be useful to see if you have everything you need when doing an repro for call related issues and providing logs to Microsoft Support.
+This script can be used to parse the Teams Client Debug Log in case you do need to know the Call ID for further troubleshooting. It might also be useful to see if the call scenarios you are grabbing by using the script is in line with the repro you tried when dealing with call related issues and providing logs to Microsoft Support.
 
 You can also use the script to simply get the Meeting ID which then can be used within CQD - for more details see the link below:
 
