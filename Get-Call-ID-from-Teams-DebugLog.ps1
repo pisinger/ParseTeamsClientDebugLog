@@ -47,7 +47,7 @@ param(
 )
 
 $excluded = "(sync|calling|cdl|cdlWorker|chatListData|experience_renderer|extensibility)\.txt"
-$Files = Get-ChildItem $Path -Include *MSTeams*.txt* -Recurse | where Name -notmatch $excluded
+$Files = Get-ChildItem $Path -Include *MSTeams*.txt* -Recurse | Where-Object Name -notmatch $excluded
 
 # get client/endpoint info only
 IF ($ClientInfo) {
@@ -90,7 +90,7 @@ IF ($ClientInfo) {
 			PublicIP = $j.user.profile.ipaddr
 		}		
 	}
-	$object | sort -unique SessionId
+	$object | Sort-Object -unique SessionId
 	break
 }
 
@@ -142,9 +142,9 @@ IF (!$CallStart -or $OnlyCallIDs) {
 	# .\Get-Call-ID-from-Teams-DebugLog.ps1 -OnlyCallIDs   
 	
 	TRY {
-		$CallIDs = @(([RegEx]::Matches($CallConnectDisc, '(?i)callId \= .{36}').Value) -replace "callId = " | select -Unique)
-		$CallIDs += @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)	
-		$CallIDs = $CallIDs | select -unique
+		$CallIDs = @(([RegEx]::Matches($CallConnectDisc, '(?i)callId \= .{36}').Value) -replace "callId = " | Select-Object -Unique)
+		$CallIDs += @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | Select-Object -Unique)	
+		$CallIDs = $CallIDs | Select-Object -unique
 	}
 	CATCH {
 		Write-warning "No Calling information found in log."
@@ -159,10 +159,10 @@ IF (!$CallStart -or $OnlyCallIDs) {
         $Disconnect = $CallConnectDisc | select-string $CallId | select-string "disconnected"
         $EndTime = ((($Disconnect -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
 
-        $end = ($CallEndReason | select-string "$CallId" | select -First 1)
-		$endPhrase = ($CallEndPhrase | select-string "$CallId" | select -First 1)
+        $end = ($CallEndReason | select-string "$CallId" | Select-Object -First 1)
+		$endPhrase = ($CallEndPhrase | select-string "$CallId" | Select-Object -First 1)
 
-		IF ($ConnectTime -eq $NULL -and $Direction -eq "inbound"){
+		IF ($NULL -eq $ConnectTime -and $Direction -eq "inbound"){
 			$TerminatedReason = "missed"
 		}
 		ELSEIF ($end){
@@ -175,20 +175,20 @@ IF (!$CallStart -or $OnlyCallIDs) {
         $calls += Calls $StartTime "" $EndTime $CallId "" "" "" "" $Scenario $TerminatedReason $CallControllerCode $CallEndReasonPhrase ""
     }
 
-    $calls | select CallId, TimeStartUTC, TimeEnd, Scenario, TerminatedReason, CallControllerCode, CallEndReasonPhrase | Sort-Object EndTime -Descending
+    $calls | Select-Object CallId, TimeStartUTC, TimeEnd, Scenario, TerminatedReason, CallControllerCode, CallEndReasonPhrase | Sort-Object EndTime -Descending
     break;
 }
 ELSE {
-    $CallIds = @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | select -Unique)
-	$CallIds += @(([RegEx]::Matches($CallStart, '(?i)newCallId \= .{36}').Value) -replace "newCallId = " | select -Unique)
-	$CallIds = $CallIds | select -unique
+    $CallIds = @(([RegEx]::Matches($CallStart, '(?i)callId\:.{36}').Value) -replace "callId:" | Select-Object -Unique)
+	$CallIds += @(([RegEx]::Matches($CallStart, '(?i)newCallId \= .{36}').Value) -replace "newCallId = " | Select-Object -Unique)
+	$CallIds = $CallIds | Select-Object -unique
 }
 
-IF ($IncomingCalls) {$CallIds += ([RegEx]::Matches($IncomingCalls, '(?i)\[callId\=.{36}').Value) -replace "\[callId=" | select -Unique}
+IF ($IncomingCalls) {$CallIds += ([RegEx]::Matches($IncomingCalls, '(?i)\[callId\=.{36}').Value) -replace "\[callId=" | Select-Object -Unique}
 $CallIds = $CallIds.Split('',[System.StringSplitOptions]::RemoveEmptyEntries)
 
 FOREACH ($callId in $CallIds) {	
-	FOREACH ($line in ($CallStart | select-string $CallID | select -first 1)) {
+	FOREACH ($line in ($CallStart | select-string $CallID | Select-Object -first 1)) {
 		# init
 		$MeetingId = ""
 		$CallControllerCode = ""
@@ -196,8 +196,8 @@ FOREACH ($callId in $CallIds) {
 		$TerminatedReason = ""
 		$Scenario = ""
 		$CallEndReasonPhrase = ""
-		$incoming = $IncomingCalls | Select-String $CallId | select -First 1
-		#$tid = $TeamsInterop | Select-String "$CallId" | select -First 1
+		$incoming = $IncomingCalls | Select-String $CallId | Select-Object -First 1
+		#$tid = $TeamsInterop | Select-String "$CallId" | Select-Object -First 1
 		
 		#------------------------------------------------------------
 		$Connected = $CallConnectDisc | select-string $CallId | select-string " connected"
@@ -213,7 +213,7 @@ FOREACH ($callId in $CallIds) {
 			$DisplayName = ""
 
 			TRY {
-				$ToFrom = $ConvController | Select-String "$CallId" | select -First 1 -ErrorAction SilentlyContinue
+				$ToFrom = $ConvController | Select-String "$CallId" | Select-Object -First 1 -ErrorAction SilentlyContinue
 				$ToFrom = ((([RegEx]::Matches($ToFrom, '\"\d{1}\:\+.+?(?=")')).Value) -split(':',2))[1]
 			}CATCH{
 				$ToFrom = ""
@@ -223,10 +223,10 @@ FOREACH ($callId in $CallIds) {
 			$Direction = "Inbound"
 
 			TRY {
-				$ToFrom = $IncomingCalls | Select-String "$CallId" | select -First 1 -ErrorAction SilentlyContinue
+				$ToFrom = $IncomingCalls | Select-String "$CallId" | Select-Object -First 1 -ErrorAction SilentlyContinue
 				$ToFrom = (([RegEx]::Matches($ToFrom, '\"\d{1}\:\+.+?(?=")').Value) -split(':',2))[1]
 
-				$DisplayName = $IncomingCallerName | Select-String "$CallId" | select -First 1 -ErrorAction SilentlyContinue
+				$DisplayName = $IncomingCallerName | Select-String "$CallId" | Select-Object -First 1 -ErrorAction SilentlyContinue
 				$DisplayName = (([RegEx]::Matches($DisplayName, 'toastCallerDisplayName\=.+?(?=])').Value) -split('=',2))[1]         
 				
 			}CATCH{
@@ -238,10 +238,10 @@ FOREACH ($callId in $CallIds) {
 		#IF($tid){ $tid = (([RegEx]::Matches($tid, 'CallId\=.+?(?=])').Value) -split('=',2))[1]}
 		
 		# check for Call End Reason and Call Type: teams, pstn, meeting, interop
-		$end = ($CallEndReason | select-string "$CallId" | select -First 1)
-		$endPhrase = ($CallEndPhrase | select-string "$CallId" | select -First 1)
+		$end = ($CallEndReason | select-string "$CallId" | Select-Object -First 1)
+		$endPhrase = ($CallEndPhrase | select-string "$CallId" | Select-Object -First 1)
 
-		IF ($ConnectTime -eq $NULL -and $Direction -eq "inbound"){
+		IF ($NULL -eq $ConnectTime -and $Direction -eq "inbound"){
 			$TerminatedReason = "missed"
 		}
 		ELSEIF ($end){
@@ -276,8 +276,8 @@ FOREACH ($callId in $CallIds) {
   
 				IF (($ModalityType | select-string $callId) -like "*_startVideoObject*"){
 					# sender
-					$Connected = @(($ModalityType | select-string $callId) -like "*_startVideoObject*success*" | select -Unique)
-					$Disconnect = @(($ModalityType | select-string $callId) -like "*_stopVideoObject*success*" | select -Unique)
+					$Connected = @(($ModalityType | select-string $callId) -like "*_startVideoObject*success*" | Select-Object -Unique)
+					$Disconnect = @(($ModalityType | select-string $callId) -like "*_stopVideoObject*success*" | Select-Object -Unique)
 					
 					for ($i = 0; $i -lt $Connected.Length; $i++) {
 						$ConnectTime = ((($Connected[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
@@ -288,8 +288,8 @@ FOREACH ($callId in $CallIds) {
 				}
 				IF (($ModalityType | select-string $callId) -like "*main-video*"){
 					# receiver
-					$Connected = @(($ModalityType | select-string $callId) -like "*remote*video*is*started*" | select -Unique)
-					$Disconnect = @(($ModalityType | select-string $callId) -like "*_stopVideo *video*stopped*" | select -Unique)
+					$Connected = @(($ModalityType | select-string $callId) -like "*remote*video*is*started*" | Select-Object -Unique)
+					$Disconnect = @(($ModalityType | select-string $callId) -like "*_stopVideo *video*stopped*" | Select-Object -Unique)
 					
 					for ($i = 0; $i -lt $Connected.Length; $i++) {
 						$ConnectTime = ((($Connected[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
@@ -305,8 +305,8 @@ FOREACH ($callId in $CallIds) {
 
 				IF (($ModalityType | select-string $callId) -like "*startScreenSharing in call*"){
 					# sender
-					$Connected = @(($ModalityType | select-string $callId) -like "*startScreenSharing in call*" | select -Unique)
-					$Disconnect = @(($ModalityType | select-string $callId) -like "*stopScreenSharing in call*" | select -Unique)
+					$Connected = @(($ModalityType | select-string $callId) -like "*startScreenSharing in call*" | Select-Object -Unique)
+					$Disconnect = @(($ModalityType | select-string $callId) -like "*stopScreenSharing in call*" | Select-Object -Unique)
 
 					for ($i = 0; $i -lt $Connected.Length; $i++) {
 						$ConnectTime = ((($Connected[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
@@ -317,8 +317,8 @@ FOREACH ($callId in $CallIds) {
 				}
 				IF (($ModalityType | select-string $callId) -like "*SharingStarted*"){ 
 					# receiver        
-					$Connected = @(($ModalityType | select-string $callId) -like "*SharingControl initiating new viewer session*" | select -Unique)
-					$Disconnect = @(($ModalityType | select-string $callId) -like "*sending event mdsc_gtc_viewer_session*" | select -Unique)
+					$Connected = @(($ModalityType | select-string $callId) -like "*SharingControl initiating new viewer session*" | Select-Object -Unique)
+					$Disconnect = @(($ModalityType | select-string $callId) -like "*sending event mdsc_gtc_viewer_session*" | Select-Object -Unique)
 
 					for ($i = 0; $i -lt $Connected.Length; $i++) {
 						$ConnectTime = ((($Connected[$i] -split ('\dZ',2))[0] -replace ("T"," ")).Split(".",2)[0]).split(" ",2)[1]
