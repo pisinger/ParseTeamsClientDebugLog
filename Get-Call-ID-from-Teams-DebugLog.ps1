@@ -103,7 +103,7 @@ function Calls () {
 	param ( 
 		[string]$StartTime,[string]$ConnectTime,[string]$EndTime,
 		$CallId,$Direction,$CallType,$Modality,$ToFrom,
-		$Scenario,$TerminatedReason,$CallControllerCode,$CallEndReasonPhrase,
+		$Scenario,$TerminatedReason,$CallControllerCode,$CallControllerSubCode,$CallEndReasonPhrase,
 		$MeetingId
 	)
 		
@@ -119,6 +119,7 @@ function Calls () {
 		Scenario = $Scenario
 		TerminatedReason = $TerminatedReason
 		CallControllerCode = $CallControllerCode
+		CallControllerSubCode = $CallControllerSubCode
 		CallEndReasonPhrase	= $CallEndReasonPhrase
 		MeetingId = $MeetingId
 	}
@@ -152,6 +153,7 @@ IF (!$CallStart -or $OnlyCallIDs) {
 	
     FOREACH ($callId in $CallIds) { 
 		$CallControllerCode = ""
+		$CallControllerSubCode = ""
 		$CallEndReasonPhrase = ""
 		$Scenario = ""
 		
@@ -168,14 +170,15 @@ IF (!$CallStart -or $OnlyCallIDs) {
 		ELSEIF ($end){
 			$TerminatedReason = (([RegEx]::Matches($end, 'terminatedReason\=.+?(?=])').Value) -split('=',2))[1]			
 			$CallControllerCode = (([RegEx]::Matches($end, 'callControllerCode\=.+?(?=])').Value) -split('=',2))[1]	
+			$CallControllerSubCode = (([RegEx]::Matches($end, 'callControllerSubCode\=.+?(?=])').Value) -split('=',2))[1]
 			$Scenario = (([RegEx]::Matches($end, 'primaryScenario\=.+?(?=])').Value) -split('=',2))[1]
 			$CallEndReasonPhrase = (([RegEx]::Matches($endPhrase, 'phrase\"\:.+?(?=")').Value) -split(':"',2))[1]
 		}
 
-        $calls += Calls $StartTime "" $EndTime $CallId "" "" "" "" $Scenario $TerminatedReason $CallControllerCode $CallEndReasonPhrase ""
+        $calls += Calls $StartTime "" $EndTime $CallId "" "" "" "" $Scenario $TerminatedReason $CallControllerCode $CallControllerSubCode $CallEndReasonPhrase ""
     }
 
-    $calls | Select-Object CallId, TimeStartUTC, TimeEnd, Scenario, TerminatedReason, CallControllerCode, CallEndReasonPhrase | Sort-Object EndTime -Descending
+    $calls | Select-Object CallId, TimeStartUTC, TimeEnd, Scenario, TerminatedReason, CallControllerCode, CallControllerSubCode, CallEndReasonPhrase | Sort-Object EndTime -Descending
     break;
 }
 ELSE {
@@ -192,6 +195,7 @@ FOREACH ($callId in $CallIds) {
 		# init
 		$MeetingId = ""
 		$CallControllerCode = ""
+		$CallControllerSubCode = ""
 		$Modality = "Audio"
 		$TerminatedReason = ""
 		$Scenario = ""
@@ -247,6 +251,7 @@ FOREACH ($callId in $CallIds) {
 		ELSEIF ($end){
 			$TerminatedReason = (([RegEx]::Matches($end, 'terminatedReason\=.+?(?=])').Value) -split('=',2))[1]
 			$CallControllerCode = (([RegEx]::Matches($end, 'callControllerCode\=.+?(?=])').Value) -split('=',2))[1]	
+			$CallControllerSubCode = (([RegEx]::Matches($end, 'callControllerSubCode\=.+?(?=])').Value) -split('=',2))[1]	
 			$Scenario = (([RegEx]::Matches($end, 'primaryScenario\=.+?(?=])').Value) -split('=',2))[1]
 			$CallEndReasonPhrase = (([RegEx]::Matches($endPhrase, 'phrase\"\:.+?(?=")').Value) -split(':"',2))[1]
 		}
@@ -266,7 +271,7 @@ FOREACH ($callId in $CallIds) {
 		ELSE                                        {$CallType = "undefined"}
 		
 		# save results
-		$calls += Calls $StartTime $ConnectTime $EndTime $CallId $Direction $CallType $Modality $ToFrom $Scenario $TerminatedReason $CallControllerCode $CallEndReasonPhrase $MeetingId
+		$calls += Calls $StartTime $ConnectTime $EndTime $CallId $Direction $CallType $Modality $ToFrom $Scenario $TerminatedReason $CallControllerCode $CallControllerSubCode $CallEndReasonPhrase $MeetingId
 		
 		# VIDEO or SHARING
 		IF ($ModalityType | select-string $callId) {
