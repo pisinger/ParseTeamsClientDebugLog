@@ -46,7 +46,7 @@ param(
 	[switch]$ClientInfo
 )
 
-$excluded = "(sync|calling|cdl|cdlWorker|chatListData|experience_renderer|extensibility)\.txt"
+$excluded = "(sync|calling|cdl|cdlWorker|chatListData|experience_renderer|extensibility|meeting_intelligence)\.txt"
 $Files = Get-ChildItem $Path -Include *MSTeams*.txt* -Recurse | Where-Object Name -notmatch $excluded
 
 # get client/endpoint info only
